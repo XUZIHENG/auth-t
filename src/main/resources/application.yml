@@ -1,0 +1,17 @@
+server:
+  port: 9000
+
+spring:
+  data:
+    rest:
+      base-path: /api
+  jackson:
+    serialization:
+      indent_output: true
+  jpa:
+    show-sql: true
+
+logging:
+  level:
+    root: warn
+    io.es: trace
