@@ -1,13 +1,23 @@
 package io.es;
 
+import io.es.repository.RepositoriesInitializer;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Profile;
 
 @SpringBootApplication
 public class Application {
 
   public static void main(String[] args) {
     SpringApplication.run(Application.class, args);
+  }
+
+  @Bean
+  @Profile("development")
+  public CommandLineRunner initializeRepositories(RepositoriesInitializer initializer) {
+    return args -> initializer.initialize();
   }
 
 }
