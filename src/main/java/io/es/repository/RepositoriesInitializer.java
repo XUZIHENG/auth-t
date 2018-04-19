@@ -1,15 +1,20 @@
 package io.es.repository;
 
-import io.es.entity.Permission;
-import io.es.entity.Role;
-import io.es.entity.User;
+import io.es.entity.*;
+import lombok.Getter;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 
 @Service
 public class RepositoriesInitializer {
@@ -20,16 +25,39 @@ public class RepositoriesInitializer {
 
   private final PermissionRepository permissionRepository;
 
+  private final ResourceRepository resourceRepository;
+
+  private final DistrictRepository districtRepository;
+
   @Autowired
   public RepositoriesInitializer(
     UserRepository userRepository,
     RoleRepository roleRepository,
-    PermissionRepository permissionRepository
+    PermissionRepository permissionRepository,
+    ResourceRepository resourceRepository,
+    DistrictRepository districtRepository
   ) {
     this.userRepository = userRepository;
     this.roleRepository = roleRepository;
     this.permissionRepository = permissionRepository;
+    this.resourceRepository = resourceRepository;
+    this.districtRepository = districtRepository;
   }
+
+  @Getter
+  private Map<String, User> users;
+
+  @Getter
+  private Map<String, Role> roles;
+
+  @Getter
+  private Map<String, Permission> permissions;
+
+  @Getter
+  private Map<String, Resource> resources;
+
+  @Getter
+  private Map<String, District> districts;
 
   private final Object lock = new Object();
 
@@ -47,41 +75,94 @@ public class RepositoriesInitializer {
   }
 
   private void initializeAll() {
+    initializeDistricts();
+    initializeResources();
+    initializePermissions();
+    initializeRoles();
     initializeUsers();
   }
 
-  @SuppressWarnings({"ArraysAsListWithZeroOrOneArgument", "unused"})
+  private void initializeDistricts() {
+    assertEmpty(districtRepository);
+
+    val districtRoot = districtRepository.save(new District(0L, "district-root", null));
+    val districtL1N1 = districtRepository.save(new District(0L, "district-1-1", districtRoot));
+    val districtL1N2 = districtRepository.save(new District(0L, "district-1-2", districtRoot));
+    val districtL2N1 = districtRepository.save(new District(0L, "district-2-1", districtL1N1));
+
+    districts = Stream.of(districtRoot, districtL1N1, districtL1N2, districtL2N1).
+      collect(Collectors.toMap(District::getName, Function.identity()));
+
+    assertNonEmpty(districtRepository);
+  }
+
+  private void initializeResources() {
+    assertEmpty(resourceRepository);
+
+    resources = resourceRepository.saveAll(asList(
+      new Resource(0L, "resource-1-1", districts.get("district-1-1")),
+      new Resource(0L, "resource-1-2", districts.get("district-1-2")),
+      new Resource(0L, "resource-2-1", districts.get("district-2-1"))
+    )).stream().collect(Collectors.toMap(Resource::getValue, Function.identity()));
+
+    assertNonEmpty(resourceRepository);
+  }
+
+  private void initializePermissions() {
+    assertEmpty(permissionRepository);
+
+    permissions = permissionRepository.saveAll(asList(
+      new Permission(0L, "resource:read"),
+      new Permission(0L, "resource:write")
+    )).stream().collect(Collectors.toMap(Permission::getValue, Function.identity()));
+
+    assertNonEmpty(permissionRepository);
+  }
+
+  private void initializeRoles() {
+    assertEmpty(roleRepository);
+
+    roles = roleRepository.saveAll(asList(
+      new Role(0L, "guest", singletonList(permissions.get("resource:read"))),
+      new Role(0L, "admin", asList(permissions.values().toArray(new Permission[0])))
+    )).stream().collect(Collectors.toMap(Role::getName, Function.identity()));
+
+    assertNonEmpty(roleRepository);
+  }
+
   private void initializeUsers() {
     assertEmpty(userRepository);
-    assertEmpty(roleRepository);
-    assertEmpty(permissionRepository);
 
     val encoder = new BCryptPasswordEncoder();
 
-    val permissionResourceRead = permissionRepository.save(new Permission(0L,
-      "resource:read"
-    ));
-    val permissionResourceWrite = permissionRepository.save(new Permission(0L,
-      "resource:write"
-    ));
-
-    val roleGuest = roleRepository.save(new Role(0L,
-      "guest", Arrays.asList(permissionResourceRead)
-    ));
-    val roleAdmin = roleRepository.save(new Role(0L,
-      "admin", Arrays.asList(permissionResourceRead, permissionResourceWrite)
-    ));
-
-    val guest = userRepository.save(new User(0L,
-      "guest", encoder.encode("q"), Arrays.asList(roleGuest)
-    ));
-    val admin = userRepository.save(new User(0L,
-      "admin", encoder.encode("q"), Arrays.asList(roleAdmin)
-    ));
+    users = userRepository.saveAll(asList(
+      User.builder().
+        username("guest-1-1").
+        password(encoder.encode("q")).
+        roles(singletonList(roles.get("guest"))).
+        district(districts.get("district-1-1")).
+        build(),
+      User.builder().
+        username("admin-1-1").
+        password(encoder.encode("q")).
+        roles(singletonList(roles.get("admin"))).
+        district(districts.get("district-1-1")).
+        build(),
+      User.builder().
+        username("guest").
+        password(encoder.encode("q")).
+        roles(singletonList(roles.get("guest"))).
+        district(districts.get("district-root")).
+        build(),
+      User.builder().
+        username("admin").
+        password(encoder.encode("q")).
+        roles(singletonList(roles.get("admin"))).
+        district(districts.get("district-root")).
+        build()
+    )).stream().collect(Collectors.toMap(User::getUsername, Function.identity()));
 
     assertNonEmpty(userRepository);
-    assertNonEmpty(roleRepository);
-    assertNonEmpty(permissionRepository);
   }
 
   private void assertEmpty(CrudRepository<?, ?> repository) {

@@ -1,10 +1,9 @@
 package io.es.entity;
 
-import io.es.entity.annotation.DistrictRestricted;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.lang.Nullable;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -15,17 +14,20 @@ import javax.persistence.ManyToOne;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-public class Resource {
+public class District {
 
   @Id
   @GeneratedValue
   Long id;
 
-  String value;
+  String name;
 
-  // @DistrictRestricted
-  @Getter(onMethod = @__(@DistrictRestricted))
+  @Nullable
   @ManyToOne
-  District district;
+  District higher;
+
+  public boolean contains(District d) {
+    return d != null && (getId().equals(d.getId()) || contains(d.getHigher()));
+  }
 
 }

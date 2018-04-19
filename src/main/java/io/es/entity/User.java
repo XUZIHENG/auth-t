@@ -3,6 +3,7 @@ package io.es.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
 
 @Data
 @Entity
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class User implements UserDetails {
@@ -37,6 +39,9 @@ public class User implements UserDetails {
 
   @ManyToMany(fetch = FetchType.EAGER)
   List<Role> roles;
+
+  @ManyToOne
+  District district;
 
   @JsonIgnore
   public List<Permission> getPermissions() {

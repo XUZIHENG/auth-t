@@ -12,8 +12,6 @@ import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.Collections;
-
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestBuilders.formLogin;
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.unauthenticated;
@@ -31,7 +29,7 @@ public class AuthenticationTest {
   @Autowired
   private RepositoriesInitializer initializer;
 
-  private final User user = new User(0L, "guest", "q", Collections.emptyList());
+  private final User user = User.builder().username("guest").password("q").build();
 
   @Before
   public void initialize() {
