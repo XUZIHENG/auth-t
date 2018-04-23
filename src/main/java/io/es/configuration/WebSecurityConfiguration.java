@@ -1,6 +1,7 @@
 package io.es.configuration;
 
 import io.es.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
   @Override
@@ -42,10 +44,5 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
   }
 
   private final UserRepository userRepository;
-
-  @Autowired
-  public WebSecurityConfiguration(UserRepository userRepository) {
-    this.userRepository = userRepository;
-  }
 
 }

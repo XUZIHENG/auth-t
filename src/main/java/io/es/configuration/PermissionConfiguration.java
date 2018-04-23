@@ -6,6 +6,7 @@ import io.es.entity.User;
 import io.es.entity.annotation.DistrictRestricted;
 import io.es.entity.annotation.Extractor;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,7 @@ import java.util.stream.Stream;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class PermissionConfiguration implements PermissionEvaluator {
 
   @Override
@@ -72,10 +74,5 @@ public class PermissionConfiguration implements PermissionEvaluator {
   }
 
   private final EntityManager manager;
-
-  @Autowired
-  public PermissionConfiguration(EntityManager manager) {
-    this.manager = manager;
-  }
 
 }

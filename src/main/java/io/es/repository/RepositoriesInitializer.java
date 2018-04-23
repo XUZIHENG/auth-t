@@ -2,6 +2,7 @@ package io.es.repository;
 
 import io.es.entity.*;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
@@ -17,6 +18,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 
 @Service
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class RepositoriesInitializer {
 
   private final UserRepository userRepository;
@@ -28,21 +30,6 @@ public class RepositoriesInitializer {
   private final ResourceRepository resourceRepository;
 
   private final DistrictRepository districtRepository;
-
-  @Autowired
-  public RepositoriesInitializer(
-    UserRepository userRepository,
-    RoleRepository roleRepository,
-    PermissionRepository permissionRepository,
-    ResourceRepository resourceRepository,
-    DistrictRepository districtRepository
-  ) {
-    this.userRepository = userRepository;
-    this.roleRepository = roleRepository;
-    this.permissionRepository = permissionRepository;
-    this.resourceRepository = resourceRepository;
-    this.districtRepository = districtRepository;
-  }
 
   @Getter
   private Map<String, User> users;
